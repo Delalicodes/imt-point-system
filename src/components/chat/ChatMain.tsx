@@ -6,15 +6,24 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Send, Paperclip, Smile } from 'lucide-react'
+import { Send, Paperclip, Smile, FileText } from 'lucide-react'
 import { connectSocket, disconnectSocket } from '@/lib/socket-client'
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Textarea } from "@/components/ui/textarea"
 
 interface Message {
   id?: string
@@ -29,6 +38,7 @@ interface Message {
     url: string
     type: string
   }
+  isReport?: boolean
 }
 
 interface ChatMainProps {
@@ -41,6 +51,8 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [socket, setSocket] = useState<Socket | null>(null)
+  const [report, setReport] = useState('')
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -142,6 +154,25 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
     setNewMessage('')
   }
 
+  const submitReport = () => {
+    if (!report.trim() || !socket) return
+
+    const reportData = {
+      content: report.trim(),
+      senderId: userId,
+      senderName: username,
+      isAdmin,
+      timestamp: new Date(),
+      profileImage: `/api/avatar/${userId}`,
+      isReport: true
+    }
+
+    console.log('Sending report:', reportData)
+    socket.emit('message', reportData)
+    setReport('')
+    setIsDialogOpen(false)
+  }
+
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
@@ -159,6 +190,33 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
             <p className="text-sm text-gray-500 dark:text-gray-400">{messages.length} messages</p>
           </div>
         </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Submit Report
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit Daily Report</DialogTitle>
+              <DialogDescription>
+                Share your daily activities and progress with the team.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Textarea
+                placeholder="Write your report here..."
+                value={report}
+                onChange={(e) => setReport(e.target.value)}
+                className="min-h-[200px]"
+              />
+              <Button onClick={submitReport} className="w-full">
+                Submit Report
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-6">
@@ -192,6 +250,11 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                           Admin
                         </span>
                       )}
+                      {message.isReport && (
+                        <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100 px-1.5 py-0.5 rounded-full">
+                          Report
+                        </span>
+                      )}
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                         isOwnMessage 
                           ? 'bg-blue-500/20 text-blue-100'
@@ -205,7 +268,7 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                         isOwnMessage
                           ? 'bg-blue-600 text-white rounded-br-none'
                           : 'bg-white dark:bg-[#1e2642] text-gray-900 dark:text-white rounded-bl-none shadow-sm'
-                      }`}
+                      } ${message.isReport ? 'border-2 border-green-500' : ''}`}
                     >
                       <p className="whitespace-pre-wrap break-words">{message.content}</p>
                       {message.file && (
