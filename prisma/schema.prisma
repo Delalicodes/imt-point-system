@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expires   DateTime
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  password      String
+  profileImage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Student {
+  id            Int      @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  username      String   @unique
+  courses       Course[]
+  supervisor    Supervisor? @relation(fields: [supervisorId], references: [id])
+  supervisorId  Int?
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  sessions      Session[]
+}
+
+model Course {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  description   String?
+  duration      Int       // This represents months
+  students      Student[]
+  subjects      Subject[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Subject {
+  id            Int       @id @default(autoincrement())
+  name          String
+  description   String?
+  courses       Course[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Supervisor {
+  id            Int      @id @default(autoincrement())
+  name          String
+  students      Student[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ChatGroup {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+  reports     Report[]
+  members     GroupMember[]
+  createdBy   String    // Admin username who created the group
+}
+
+model GroupMember {
+  id          Int       @id @default(autoincrement())
+  group       ChatGroup @relation(fields: [groupId], references: [id])
+  groupId     Int
+  username    String    // Can be either student or admin username
+  role        String    @default("MEMBER") // ADMIN, MEMBER
+  joinedAt    DateTime  @default(now())
+  messages    Message[]
+}
+
+model Message {
+  id          Int         @id @default(autoincrement())
+  content     String
+  type        String      @default("TEXT") // TEXT, FILE, IMAGE
+  fileUrl     String?     // URL for files/images
+  fileName    String?     // Original file name
+  sender      GroupMember @relation(fields: [senderId], references: [id])
+  senderId    Int
+  group       ChatGroup   @relation(fields: [groupId], references: [id])
+  groupId     Int
+  replyTo     Message?    @relation("ReplyToMessage", fields: [replyToId], references: [id])
+  replyToId   Int?
+  replies     Message[]   @relation("ReplyToMessage")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Report {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String
+  group       ChatGroup @relation(fields: [groupId], references: [id])
+  groupId     Int
+  author      String    // username of the report author
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ChatGroupSocket {
+  id        Int       @id @default(autoincrement())
+  name      String
+  messages  MessageSocket[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MessageSocket {
+  id         Int       @id @default(autoincrement())
+  content    String
+  sender     String
+  fileUrl    String?
+  fileName   String?
+  chatGroup  ChatGroupSocket @relation(fields: [chatGroupId], references: [id])
+  chatGroupId Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}

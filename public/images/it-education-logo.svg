@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle background -->
+  <circle cx="100" cy="100" r="90" fill="#4F46E5"/>
+  
+  <!-- Book shape -->
+  <path d="M60 70 V140 H140 V70 H60Z" fill="white"/>
+  <path d="M65 75 V135 H135 V75 H65Z" fill="#4F46E5"/>
+  
+  <!-- Screen/Monitor -->
+  <rect x="75" y="85" width="50" height="35" rx="2" fill="white"/>
+  
+  <!-- Binary code decoration -->
+  <text x="80" y="105" fill="white" font-family="monospace" font-size="8">
+    10101
+  </text>
+  <text x="80" y="115" fill="white" font-family="monospace" font-size="8">
+    01010
+  </text>
+  
+  <!-- Text -->
+  <text x="100" y="170" fill="white" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="14">
+    IT EDUCATION
+  </text>
+</svg>
