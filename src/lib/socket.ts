@@ -1,7 +1,6 @@
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer } from 'socket.io'
 import { NextApiResponse } from 'next'
-import { Server } from 'socket.io'
 
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: {
@@ -18,6 +17,7 @@ export const config = {
 }
 
 let io: SocketIOServer | null = null
+const messages: any[] = []
 
 export function getIO() {
   if (!io) {
@@ -33,7 +33,7 @@ export function initSocket(server: NetServer) {
   }
 
   console.log('Initializing Socket.io...')
-  io = new Server(server, {
+  io = new SocketIOServer(server, {
     path: '/api/socket/io',
     addTrailingSlash: false,
     cors: {
@@ -41,42 +41,32 @@ export function initSocket(server: NetServer) {
       methods: ['GET', 'POST'],
       credentials: true,
     },
-    transports: ['websocket', 'polling'],
-    pingTimeout: 60000,
   })
 
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id)
 
-    socket.on('join-room', (username) => {
-      console.log(`${socket.id} joining room:`, username)
-      socket.join(username)
-      socket.emit('room-joined', { room: username })
-    })
+    // Send previous messages to newly connected client
+    socket.emit('previousMessages', messages)
 
-    socket.on('leave-room', (username) => {
-      console.log(`${socket.id} leaving room:`, username)
-      socket.leave(username)
-    })
-
-    socket.on('message', ({ content, sender, recipient }) => {
-      console.log(`Message from ${sender} to ${recipient}:`, content)
-      const messageData = {
-        content,
-        sender,
+    socket.on('message', (message) => {
+      console.log('Received message:', message)
+      const newMessage = {
+        ...message,
+        id: Date.now().toString(),
         timestamp: new Date(),
+        senderName: message.senderName || message.sender,
+        profileImage: message.profileImage || `/api/avatar/${message.senderId}`,
+        isAdmin: message.isAdmin || false
       }
-      socket.to(recipient).emit('message', messageData)
-      socket.emit('message', messageData)
+      messages.push(newMessage)
+      // Broadcast the message to all clients
+      io.emit('message', newMessage)
+      console.log('Message broadcasted:', newMessage)
     })
 
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id)
-    })
-
-    socket.on('error', (error) => {
-      console.error('Socket error:', error)
-      socket.emit('error', { message: 'An error occurred' })
     })
   })
 
@@ -85,7 +75,6 @@ export function initSocket(server: NetServer) {
 
 export function cleanupSocket() {
   if (io) {
-    console.log('Cleaning up Socket.io...')
     io.close()
     io = null
   }

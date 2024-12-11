@@ -1,4 +1,4 @@
-// File: C:\projects\imt-point-system\src\app\dashboard\chat\page.tsx
+// File: c:\projects\imt-point-system\src\app\dashboard\chat\page.tsx
 import * as entry from '../../../../../src/app/dashboard/chat/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

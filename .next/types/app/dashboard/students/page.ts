@@ -1,4 +1,4 @@
-// File: C:\projects\imt-point-system\src\app\dashboard\students\page.tsx
+// File: c:\projects\imt-point-system\src\app\dashboard\students\page.tsx
 import * as entry from '../../../../../src/app/dashboard/students/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

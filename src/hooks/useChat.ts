@@ -6,6 +6,8 @@ import { io, Socket } from 'socket.io-client'
 interface Message {
   content: string
   sender: string
+  senderName: string
+  profileImage?: string
   timestamp: Date
 }
 
@@ -17,7 +19,10 @@ export function useChat(recipientUsername: string) {
   const [isJoined, setIsJoined] = useState(false)
 
   useEffect(() => {
-    const newSocket = io({
+    const socketUrl = `${process.env.NEXT_PUBLIC_SITE_URL}:${process.env.NEXT_PUBLIC_SOCKET_PORT}`
+    console.log('Connecting to socket server at:', socketUrl)
+    
+    const newSocket = io(socketUrl, {
       path: '/api/socket/io',
       addTrailingSlash: false,
       reconnection: true,
@@ -94,7 +99,7 @@ export function useChat(recipientUsername: string) {
     }
   }, [recipientUsername])
 
-  const sendMessage = useCallback((content: string, sender: string) => {
+  const sendMessage = useCallback((content: string, sender: string, senderName: string, profileImage?: string) => {
     if (!socket || !content.trim() || !recipientUsername) {
       console.warn('Cannot send message:', { socket: !!socket, content, recipientUsername })
       return
@@ -110,6 +115,8 @@ export function useChat(recipientUsername: string) {
     socket.emit('message', {
       content,
       sender,
+      senderName,
+      profileImage,
       recipient: recipientUsername,
     })
   }, [socket, recipientUsername, isConnected, isJoined])

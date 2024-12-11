@@ -1,45 +1,25 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import ChatSidebar from '@/components/chat/ChatSidebar'
 import ChatMain from '@/components/chat/ChatMain'
-import UserProfile from '@/components/chat/UserProfile'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import { useUser } from '@/contexts/UserContext'
 
-interface Student {
-  id: string
-  username: string
-  firstName: string
-  lastName: string
-}
-
 export default function ChatPage() {
-  const [selectedChat, setSelectedChat] = useState<string | null>(null)
-  const [showProfile, setShowProfile] = useState(false)
   const { userData } = useUser()
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Log the current state when it changes
-    console.log('Current chat state:', {
-      selectedChat,
-      userData: userData?.username
-    })
-  }, [selectedChat, userData])
-
-  const handleChatSelect = (username: string) => {
-    console.log('Selected chat:', username)
-    setSelectedChat(username)
-  }
+    console.log('Chat page user data:', userData)
+  }, [userData])
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-300">Loading chat...</p>
+            <div className="w-8 h-8 border-4 border-[#00a884] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-gray-800 dark:text-gray-300">Loading chat...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -49,12 +29,12 @@ export default function ChatPage() {
   if (!userData) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
           <div className="text-center">
             <p className="text-red-400">Error: Unable to load user session</p>
             <button 
               onClick={() => window.location.reload()}
-              className="mt-2 text-purple-400 hover:text-purple-300 hover:underline"
+              className="mt-2 text-[#00a884] hover:text-[#008f6c]"
             >
               Try Again
             </button>
@@ -64,37 +44,18 @@ export default function ChatPage() {
     )
   }
 
+  const displayName = userData.firstName && userData.lastName 
+    ? `${userData.firstName} ${userData.lastName}`
+    : userData.username || 'Anonymous'
+
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
-        {/* Left Sidebar */}
-        <ChatSidebar 
-          selectedChat={selectedChat}
-          onChatSelect={handleChatSelect}
-          username={userData.username}
+      <div className="h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
+        <ChatMain
+          userId={userData.id}
+          username={displayName}
+          isAdmin={userData.role === 'ADMIN'}
         />
-
-        {/* Main Chat Area */}
-        <div className="flex-1 flex">
-          <ChatMain
-            chatId={selectedChat}
-            onProfileClick={() => setShowProfile(true)}
-            userId={userData.id}
-            username={userData.username}
-          />
-        </div>
-
-        {/* Right Profile Sidebar */}
-        {showProfile && (
-          <UserProfile
-            onClose={() => setShowProfile(false)}
-            user={{
-              username: userData.username,
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || ''
-            }}
-          />
-        )}
       </div>
     </DashboardLayout>
   )
