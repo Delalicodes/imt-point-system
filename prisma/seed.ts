@@ -68,32 +68,52 @@ async function main() {
   // Create test students
   const testStudents = [
     {
-      firstName: 'John',
-      lastName: 'Doe',
-      username: 'john.doe',
-      status: 'ACTIVE',
+      firstName: "John",
+      lastName: "Doe",
+      username: "john.doe",
+      email: "john.doe@example.com",
+      status: "ACTIVE",
       points: 0,
-      courses: {
-        connect: [{ name: 'Computer Science' }]
-      }
+      courses: ["Computer Science"]
     },
     {
-      firstName: 'Jane',
-      lastName: 'Smith',
-      username: 'jane.smith',
-      status: 'ACTIVE',
+      firstName: "Jane",
+      lastName: "Smith",
+      username: "jane.smith",
+      email: "jane.smith@example.com",
+      status: "ACTIVE",
       points: 0,
-      courses: {
-        connect: [{ name: 'Information Technology' }]
-      }
+      courses: ["Information Technology"]
     }
   ]
 
   for (const studentData of testStudents) {
     await prisma.student.upsert({
-      where: { username: studentData.username },
-      update: studentData,
-      create: studentData
+      where: {
+        username: studentData.username
+      },
+      update: {
+        firstName: studentData.firstName,
+        lastName: studentData.lastName,
+        username: studentData.username,
+        email: studentData.email,
+        status: studentData.status,
+        points: studentData.points,
+        courses: {
+          connect: studentData.courses.map(name => ({ name }))
+        }
+      },
+      create: {
+        firstName: studentData.firstName,
+        lastName: studentData.lastName,
+        username: studentData.username,
+        email: studentData.email,
+        status: studentData.status,
+        points: studentData.points,
+        courses: {
+          connect: studentData.courses.map(name => ({ name }))
+        }
+      }
     })
   }
 }
