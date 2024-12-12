@@ -311,35 +311,35 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
             return (
               <ContextMenu key={message.id || index}>
                 <ContextMenuTrigger>
-                  <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[80%]`}>
+                  <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} py-1`}>
+                    <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-end gap-1.5 max-w-[70%]`}>
                       {!isOwnMessage && (
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-6 w-6">
                           {message.profileImage ? (
                             <AvatarImage src={message.profileImage} alt={message.senderName} />
                           ) : (
-                            <AvatarFallback className="bg-blue-600 text-white">
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
                               {message.senderName?.substring(0, 2).toUpperCase() || 'U'}
                             </AvatarFallback>
                           )}
                         </Avatar>
                       )}
                       <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                        <span className={`text-sm font-medium mb-1 flex items-center gap-2 ${
+                        <span className={`text-xs font-medium mb-0.5 flex items-center gap-1.5 ${
                           isOwnMessage ? 'text-right text-gray-300' : 'text-gray-500 dark:text-gray-400'
                         }`}>
                           {message.senderName}
                           {message.isAdmin && (
-                            <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100 px-1.5 py-0.5 rounded-full">
+                            <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100 px-1 py-px rounded-full">
                               Admin
                             </span>
                           )}
                           {message.isReport && (
-                            <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100 px-1.5 py-0.5 rounded-full">
+                            <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100 px-1 py-px rounded-full">
                               Report
                             </span>
                           )}
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          <span className={`text-[10px] px-1 py-px rounded-full ${
                             isOwnMessage 
                               ? 'bg-blue-500/20 text-blue-100'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
@@ -348,14 +348,14 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                           </span>
                         </span>
                         <div
-                          className={`rounded-2xl px-4 py-2.5 ${
+                          className={`rounded-xl px-3 py-1.5 ${
                             isOwnMessage
-                              ? 'bg-blue-600 text-white rounded-br-none'
-                              : 'bg-white dark:bg-[#1e2642] text-gray-900 dark:text-white rounded-bl-none shadow-sm'
-                          } ${message.isReport ? 'border-2 border-green-500' : ''}`}
+                              ? 'bg-blue-600 text-white rounded-br-sm'
+                              : 'bg-white dark:bg-[#1e2642] text-gray-900 dark:text-white rounded-bl-sm shadow-sm'
+                          } ${message.isReport ? 'border border-green-500' : ''}`}
                         >
                           {message.replyTo && (
-                            <div className={`mb-2 pb-2 text-sm border-b ${
+                            <div className={`mb-1 pb-1 text-xs border-b ${
                               isOwnMessage ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700'
                             }`}>
                               <div className={`font-medium ${
@@ -363,32 +363,32 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                               }`}>
                                 Replying to {message.replyTo.senderName}
                               </div>
-                              <div className="line-clamp-2 opacity-75">
+                              <div className="line-clamp-1 opacity-75">
                                 {message.replyTo.content}
                               </div>
                             </div>
                           )}
                           {editingMessage?.id === message.id ? (
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                               <Textarea
                                 value={editContent}
                                 onChange={(e) => setEditContent(e.target.value)}
-                                className="min-h-[60px] bg-white/10 border-white/20"
+                                className="min-h-[45px] text-sm bg-white/10 border-white/20"
                                 placeholder="Edit your message..."
                               />
-                              <div className="flex justify-end gap-2">
+                              <div className="flex justify-end gap-1.5">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={cancelEdit}
-                                  className="h-8"
+                                  className="h-7 text-xs"
                                 >
                                   Cancel
                                 </Button>
                                 <Button
                                   size="sm"
                                   onClick={saveEdit}
-                                  className="h-8"
+                                  className="h-7 text-xs"
                                 >
                                   Save
                                 </Button>
@@ -396,14 +396,14 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                             </div>
                           ) : (
                             <>
-                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                              <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                               {message.file && (
-                                <div className="mt-2">
+                                <div className="mt-1">
                                   <a
                                     href={message.file.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-sm underline hover:no-underline"
+                                    className="text-xs underline hover:no-underline"
                                   >
                                     {message.file.name}
                                   </a>
@@ -411,7 +411,7 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
                               )}
                             </>
                           )}
-                          <span className={`text-xs mt-1 block ${
+                          <span className={`text-[10px] mt-0.5 block ${
                             isOwnMessage ? 'text-blue-100' : 'text-gray-400'
                           }`}>
                             {formatTime(message.timestamp)}
