@@ -8,9 +8,10 @@ export const connectSocket = () => {
     socket = io('http://localhost:3001', {
       withCredentials: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
-      timeout: 10000,
+      timeout: 60000, // Increased timeout to 60 seconds
+      transports: ['websocket', 'polling'] // Try WebSocket first, fallback to polling
     })
 
     socket.on('connect', () => {
@@ -19,10 +20,24 @@ export const connectSocket = () => {
 
     socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error.message)
+      // Try to reconnect on error
+      setTimeout(() => {
+        if (socket) {
+          socket.connect()
+        }
+      }, 1000)
     })
 
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason)
+      if (reason === 'io server disconnect') {
+        // If the server disconnected us, try to reconnect
+        setTimeout(() => {
+          if (socket) {
+            socket.connect()
+          }
+        }, 1000)
+      }
     })
 
     socket.on('error', (error: Error) => {
@@ -30,14 +45,20 @@ export const connectSocket = () => {
     })
 
     // Add ping/pong for connection health check
-    setInterval(() => {
+    const pingInterval = setInterval(() => {
       if (socket?.connected) {
+        console.log('Sending ping to server...')
         socket.emit('ping')
       }
-    }, 5000)
+    }, 20000) // Send ping every 20 seconds
 
     socket.on('pong', () => {
       console.log('Received pong from server')
+    })
+
+    // Clean up interval on disconnect
+    socket.on('disconnect', () => {
+      clearInterval(pingInterval)
     })
   } else {
     console.log('Using existing socket connection:', socket.id)
@@ -53,9 +74,4 @@ export const disconnectSocket = () => {
   }
 }
 
-export const getSocket = () => {
-  if (!socket) {
-    throw new Error('Socket not initialized. Call connectSocket first.')
-  }
-  return socket
-}
+export const getSocket = () => socket

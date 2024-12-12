@@ -8,7 +8,9 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["*"]
-  }
+  },
+  pingTimeout: 60000,  // Increase ping timeout to 60 seconds
+  pingInterval: 25000  // Send ping every 25 seconds
 });
 
 let messages = [];
@@ -18,6 +20,12 @@ io.on('connection', (socket) => {
 
   // Send existing messages to the newly connected client
   socket.emit('previousMessages', messages);
+
+  // Handle ping
+  socket.on('ping', () => {
+    console.log('Received ping from client:', socket.id);
+    socket.emit('pong');
+  });
 
   socket.on('message', (message) => {
     try {
@@ -71,9 +79,14 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
+
+  // Handle errors
+  socket.on('error', (error) => {
+    console.error('Socket error for client', socket.id, ':', error);
+  });
 });
 
 const PORT = 3001;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Socket.IO server running at http://localhost:${PORT}`);
 });
