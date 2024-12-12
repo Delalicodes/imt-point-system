@@ -1,6 +1,14 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/dashboard/chat/page": "app/dashboard/chat/page.js",
-  "/dashboard/registration/page": "app/dashboard/registration/page.js",
   "/dashboard/students/page": "app/dashboard/students/page.js",
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/api/admin/profile/route": "app/api/admin/profile/route.js",
+  "/api/students/route": "app/api/students/route.js",
+  "/dashboard/registration/page": "app/dashboard/registration/page.js",
+  "/api/admin/course-setup/route": "app/api/admin/course-setup/route.js",
+  "/api/students/register/route": "app/api/students/register/route.js",
+  "/api/points/transactions/route": "app/api/points/transactions/route.js",
   "/dashboard/points/page": "app/dashboard/points/page.js"
 }

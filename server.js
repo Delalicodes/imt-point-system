@@ -11,86 +11,66 @@ const io = new Server(httpServer, {
   }
 });
 
-const messages = [];
+let messages = [];
 
 io.on('connection', (socket) => {
-  try {
-    console.log('Client connected:', socket.id);
-    console.log('Total clients connected:', io.engine.clientsCount);
-    console.log('Current messages in memory:', messages.length);
+  console.log('Client connected:', socket.id);
 
-    // Send previous messages to newly connected client
-    console.log('Sending previous messages to client');
-    socket.emit('previousMessages', messages);
+  // Send existing messages to the newly connected client
+  socket.emit('previousMessages', messages);
 
-    socket.on('message', (message) => {
-      try {
-        console.log('Received message from client:', message);
-        
-        const newMessage = {
-          ...message,
-          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  socket.on('message', (message) => {
+    try {
+      console.log('Received message:', message);
+      
+      // Add unique ID and timestamp
+      const newMessage = {
+        ...message,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date()
+      };
+      
+      // Store message
+      messages.push(newMessage);
+      
+      // Keep only last 100 messages
+      if (messages.length > 100) {
+        messages.shift();
+      }
+      
+      // Broadcast to all clients including sender
+      io.emit('message', newMessage);
+      
+      console.log('Message broadcast complete');
+    } catch (error) {
+      console.error('Error handling message:', error);
+      socket.emit('error', { message: 'Failed to process message' });
+    }
+  });
+
+  socket.on('editMessage', (updatedMessage) => {
+    try {
+      console.log('Edit message request:', updatedMessage);
+      
+      const index = messages.findIndex(msg => msg.id === updatedMessage.id);
+      if (index !== -1) {
+        messages[index] = {
+          ...updatedMessage,
+          isEdited: true,
           timestamp: new Date()
         };
-        
-        console.log('Created new message with ID:', newMessage.id);
-        
-        // Store the message
-        messages.push(newMessage);
-        console.log('Total messages in memory:', messages.length);
-        
-        // Keep only last 100 messages
-        if (messages.length > 100) {
-          messages.shift();
-          console.log('Removed oldest message, new total:', messages.length);
-        }
-        
-        // Broadcast to all clients
-        console.log('Broadcasting message to all clients');
-        io.emit('message', newMessage);
-      } catch (error) {
-        console.error('Error handling message:', error);
-        socket.emit('error', { message: 'Failed to process message' });
+        io.emit('editMessage', messages[index]);
+        console.log('Message edit broadcast complete');
       }
-    });
+    } catch (error) {
+      console.error('Error editing message:', error);
+      socket.emit('error', { message: 'Failed to edit message' });
+    }
+  });
 
-    socket.on('editMessage', (updatedMessage) => {
-      try {
-        console.log('Received edit request:', updatedMessage);
-        
-        // Find and update the message in memory
-        const index = messages.findIndex(msg => msg.id === updatedMessage.id);
-        if (index !== -1) {
-          messages[index] = updatedMessage;
-          console.log('Message updated in memory');
-          
-          // Broadcast the edit to all clients
-          io.emit('editMessage', updatedMessage);
-        } else {
-          console.error('Message not found for editing:', updatedMessage.id);
-        }
-      } catch (error) {
-        console.error('Error handling message edit:', error);
-        socket.emit('error', { message: 'Failed to edit message' });
-      }
-    });
-
-    socket.on('ping', () => {
-      console.log('Received ping from client:', socket.id);
-      socket.emit('pong');
-    });
-
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
-      console.log('Remaining clients:', io.engine.clientsCount);
-    });
-  } catch (error) {
-    console.error('Error in connection handler:', error);
-  }
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
 const PORT = 3001;

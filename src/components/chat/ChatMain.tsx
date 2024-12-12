@@ -82,15 +82,7 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
 
     socket.on('message', (message: Message) => {
       console.log('Received message:', message)
-      setMessages(prev => {
-        console.log('Current messages:', prev)
-        const updated = [...prev, {
-          ...message,
-          timestamp: new Date(message.timestamp)
-        }]
-        console.log('Updated messages:', updated)
-        return updated
-      })
+      setMessages(prev => [...prev, message])
       setTimeout(() => {
         if (scrollAreaRef.current) {
           scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
@@ -100,33 +92,19 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
 
     socket.on('previousMessages', (previousMessages: Message[]) => {
       console.log('Received previous messages:', previousMessages)
-      if (Array.isArray(previousMessages)) {
-        const formattedMessages = previousMessages.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-        console.log('Setting previous messages:', formattedMessages)
-        setMessages(formattedMessages)
-        setTimeout(() => {
-          if (scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
-          }
-        }, 100)
-      }
+      setMessages(previousMessages)
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+        }
+      }, 100)
     })
 
     socket.on('editMessage', (updatedMessage: Message) => {
       console.log('Received edited message:', updatedMessage)
-      setMessages(prev => {
-        const updated = prev.map(msg => {
-          if (msg.id === updatedMessage.id) {
-            return updatedMessage
-          }
-          return msg
-        })
-        console.log('Updated messages:', updated)
-        return updated
-      })
+      setMessages(prev => prev.map(msg => 
+        msg.id === updatedMessage.id ? updatedMessage : msg
+      ))
     })
 
     return () => {
@@ -214,8 +192,7 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       senderId: userId,
       senderName: username,
       isAdmin,
-      timestamp: new Date(),
-      profileImage: `/api/avatar/${userId}`,
+      isReport: false,
       ...(replyingTo && {
         replyTo: {
           id: replyingTo.id!,
@@ -225,7 +202,6 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       })
     }
 
-    console.log('Sending message:', messageData)
     socket.emit('message', messageData)
     setNewMessage('')
     setReplyingTo(null)
@@ -239,8 +215,6 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       senderId: userId,
       senderName: username,
       isAdmin,
-      timestamp: new Date(),
-      profileImage: `/api/avatar/${userId}`,
       isReport: true,
       ...(replyingTo && {
         replyTo: {
@@ -251,7 +225,6 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       })
     }
 
-    console.log('Sending report:', reportData)
     socket.emit('message', reportData)
     setReport('')
     setIsDialogOpen(false)
