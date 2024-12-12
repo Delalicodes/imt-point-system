@@ -54,6 +54,27 @@ io.on('connection', (socket) => {
       }
     });
 
+    socket.on('editMessage', (updatedMessage) => {
+      try {
+        console.log('Received edit request:', updatedMessage);
+        
+        // Find and update the message in memory
+        const index = messages.findIndex(msg => msg.id === updatedMessage.id);
+        if (index !== -1) {
+          messages[index] = updatedMessage;
+          console.log('Message updated in memory');
+          
+          // Broadcast the edit to all clients
+          io.emit('editMessage', updatedMessage);
+        } else {
+          console.error('Message not found for editing:', updatedMessage.id);
+        }
+      } catch (error) {
+        console.error('Error handling message edit:', error);
+        socket.emit('error', { message: 'Failed to edit message' });
+      }
+    });
+
     socket.on('ping', () => {
       console.log('Received ping from client:', socket.id);
       socket.emit('pong');
