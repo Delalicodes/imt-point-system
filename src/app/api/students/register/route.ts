@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server"
 import { prisma } from '@/lib/prisma'
-import { v4 as uuidv4 } from 'uuid'
-import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +27,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // First, check if the course exists
+    const courseExists = await prisma.course.findUnique({
+      where: { id: parseInt(course) }
+    })
+
+    if (!courseExists) {
+      return NextResponse.json(
+        { error: 'Selected course does not exist' },
+        { status: 400 }
+      )
+    }
+
     // Create new student with course connection
     const student = await prisma.student.create({
       data: {
@@ -36,8 +46,9 @@ export async function POST(request: Request) {
         lastName,
         username,
         status: 'ACTIVE',
+        points: 0,
         courses: {
-          connect: { id: parseInt(course) }
+          connect: [{ id: parseInt(course) }]
         }
       },
       include: {
@@ -45,15 +56,17 @@ export async function POST(request: Request) {
       }
     })
 
+    console.log('Created student:', student)
+
     return NextResponse.json({ 
       success: true,
       message: 'Student registered successfully',
       student
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error)
     return NextResponse.json(
-      { error: 'Failed to register student' },
+      { error: error.message || 'Failed to register student' },
       { status: 500 }
     )
   }

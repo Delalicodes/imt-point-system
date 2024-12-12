@@ -11,6 +11,7 @@ export async function GET() {
         lastName: true,
         username: true,
         status: true,
+        points: true,
         courses: {
           select: {
             name: true,
@@ -33,8 +34,10 @@ export async function GET() {
       lastName: student.lastName,
       username: student.username,
       status: student.status,
+      points: student.points,
       course: student.courses[0]?.name || 'No Course',
-      duration: student.courses[0]?.duration || 0
+      duration: student.courses[0]?.duration || 0,
+      monthsLeft: calculateMonthsLeft(student.createdAt, student.courses[0]?.duration || 0)
     }))
 
     return NextResponse.json(transformedStudents)

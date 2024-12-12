@@ -1,29 +1,69 @@
 const { PrismaClient } = require('@prisma/client')
-const bcrypt = require('bcryptjs')
+const { hash } = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
 async function main() {
-  // Default admin credentials
-  const defaultAdmin = {
-    username: 'admin@imt.com',
-    password: 'admin123', // This is just for development, change in production!
-  }
+  // Create default admin account
+  const adminPassword = 'admin123'
+  const hashedPassword = await hash(adminPassword, 10)
 
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(defaultAdmin.password, 10)
-
-  // Create the admin user
   const admin = await prisma.admin.upsert({
-    where: { username: defaultAdmin.username },
+    where: { username: 'admin@imt.com' },
     update: {},
     create: {
-      username: defaultAdmin.username,
+      username: 'admin@imt.com',
       password: hashedPassword,
     },
   })
 
   console.log('Default admin account created:', admin.username)
+
+  // Create test courses
+  const courses = [
+    {
+      name: 'Computer Science',
+      description: 'Bachelor of Science in Computer Science',
+      duration: 48,
+      subjects: {
+        create: [
+          {
+            name: 'Programming Fundamentals',
+            description: 'Introduction to programming concepts'
+          },
+          {
+            name: 'Data Structures',
+            description: 'Study of data organization and algorithms'
+          }
+        ]
+      }
+    },
+    {
+      name: 'Information Technology',
+      description: 'Bachelor of Science in Information Technology',
+      duration: 48,
+      subjects: {
+        create: [
+          {
+            name: 'Web Development',
+            description: 'Building web applications'
+          },
+          {
+            name: 'Database Management',
+            description: 'Managing and querying databases'
+          }
+        ]
+      }
+    }
+  ]
+
+  for (const courseData of courses) {
+    await prisma.course.upsert({
+      where: { name: courseData.name },
+      update: courseData,
+      create: courseData
+    })
+  }
 
   // Create test students
   const testStudents = [
@@ -32,32 +72,29 @@ async function main() {
       lastName: 'Doe',
       username: 'john.doe',
       status: 'ACTIVE',
+      points: 0,
       courses: {
-        create: {
-          name: 'Web Development',
-          duration: 12
-        }
+        connect: [{ name: 'Computer Science' }]
       }
     },
     {
       firstName: 'Jane',
       lastName: 'Smith',
       username: 'jane.smith',
-      status: 'ON_HOLD',
+      status: 'ACTIVE',
+      points: 0,
       courses: {
-        create: {
-          name: 'Mobile Development',
-          duration: 6
-        }
+        connect: [{ name: 'Information Technology' }]
       }
     }
   ]
 
   for (const studentData of testStudents) {
-    const student = await prisma.student.create({
-      data: studentData
+    await prisma.student.upsert({
+      where: { username: studentData.username },
+      update: studentData,
+      create: studentData
     })
-    console.log('Test student created:', student.firstName, student.lastName)
   }
 }
 

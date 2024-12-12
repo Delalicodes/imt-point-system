@@ -41,6 +41,9 @@ model Student {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   sessions      Session[]
+  points        Int       @default(0)
+  receivedPoints PointTransaction[] @relation("ReceivedPoints")
+  awardedPoints  PointTransaction[] @relation("AwardedPoints")
 }
 
 model Course {
@@ -153,4 +156,20 @@ model ChatMessage {
   updatedAt   DateTime @updatedAt
 
   @@index([timestamp])
+}
+
+model PointTransaction {
+  id          Int       @id @default(autoincrement())
+  points      Int
+  reason      String
+  type        String    // AWARD, DEDUCT, etc.
+  student     Student   @relation("ReceivedPoints", fields: [studentId], references: [id])
+  studentId   Int
+  awardedBy   Student   @relation("AwardedPoints", fields: [awardedById], references: [id])
+  awardedById Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([studentId])
+  @@index([awardedById])
 }
