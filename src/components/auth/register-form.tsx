@@ -26,7 +26,8 @@ export default function RegisterForm({ courses }: { courses: Course[] }) {
     course: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    password: ''
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +76,10 @@ export default function RegisterForm({ courses }: { courses: Course[] }) {
       toast({ title: "Error", description: "Please enter a valid email address", variant: "destructive" })
       return false
     }
+    if (!formData.password.trim()) {
+      toast({ title: "Error", description: "Password is required", variant: "destructive" })
+      return false
+    }
     return true
   }
 
@@ -88,13 +93,21 @@ export default function RegisterForm({ courses }: { courses: Course[] }) {
     setLoading(true)
 
     try {
-      console.log('Sending registration data:', formData)
+      // Convert course ID to number before sending
+      const submissionData = {
+        ...formData,
+        course: parseInt(formData.course)
+      }
+      
+      console.log('Form data before submission:', formData)
+      console.log('Submission data after conversion:', submissionData)
+      
       const res = await fetch('/api/students/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       })
 
       const data = await res.json()
@@ -202,6 +215,18 @@ export default function RegisterForm({ courses }: { courses: Course[] }) {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
                 required
               />
             </div>

@@ -6,27 +6,28 @@ import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: Request) {
   try {
-    console.log('Login attempt started')
+    console.log('Student login attempt started')
     const body = await request.json()
     console.log('Request body:', body)
 
     const { username, password } = body
 
-    // First check if any admins exist
-    const adminCount = await prisma.admin.count()
-    console.log('Total admin count:', adminCount)
-
-    console.log('Looking up admin:', username)
-    const admin = await prisma.admin.findUnique({
-      where: { username },
+    console.log('Looking up student:', username)
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { username },
+          { email: username }
+        ]
+      },
+      include: {
+        course: true
+      }
     })
 
-    console.log('Admin found:', admin ? 'yes' : 'no')
-    if (admin) {
-      console.log('Admin details:', { ...admin, password: '[REDACTED]' })
-    }
+    console.log('Student found:', student ? 'yes' : 'no')
 
-    if (!admin) {
+    if (!student) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     console.log('Validating password')
-    const isPasswordValid = await bcrypt.compare(password, admin.password)
+    const isPasswordValid = await bcrypt.compare(password, student.password)
     console.log('Password valid:', isPasswordValid ? 'yes' : 'no')
 
     if (!isPasswordValid) {
@@ -57,13 +58,14 @@ export async function POST(request: Request) {
       sameSite: 'lax'
     })
 
-    // Store admin data in session cookie for easy access
+    // Store student data in session cookie for easy access
     cookies().set('user_data', JSON.stringify({
-      id: admin.id,
-      username: admin.username,
-      firstName: 'Admin', // Default values for admin
-      lastName: 'User',
-      type: 'admin'
+      id: student.id,
+      username: student.username,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      type: 'student',
+      course: student.course.name
     }), {
       expires,
       httpOnly: true,
@@ -74,11 +76,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true,
       user: {
-        id: admin.id,
-        username: admin.username,
-        firstName: 'Admin',
-        lastName: 'User',
-        type: 'admin'
+        id: student.id,
+        username: student.username,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        type: 'student',
+        course: student.course.name
       }
     })
   } catch (error) {
