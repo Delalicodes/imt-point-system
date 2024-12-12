@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Pencil, Trash2, Eye, MoreHorizontal } from 'lucide-react'
+import { Pencil, Trash2, Eye, MoreHorizontal, Info, X } from 'lucide-react'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import {
   Table,
@@ -23,18 +23,36 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { User, AtSign, Mail, Phone, MapPin, GraduationCap, Clock, Activity, Star, Calendar } from 'lucide-react'
 
 type Student = {
   id: number
   firstName: string
   lastName: string
+  username: string
+  email: string
+  phone?: string
+  address?: string
   course: string
   duration: number
   status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED'
+  points: number
+  createdAt: string
 }
 
 export default function StudentsPage() {
@@ -43,6 +61,8 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [studentToView, setStudentToView] = useState<Student | null>(null)
 
   useEffect(() => {
     fetchStudents()
@@ -145,11 +165,18 @@ export default function StudentsPage() {
             </TableHeader>
             <TableBody>
               {students.map((student) => (
-                <TableRow key={student.id}>
+                <TableRow 
+                  key={student.id}
+                  className="cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-100"
+                  onClick={() => {
+                    setStudentToView(student)
+                    setShowConfirmDialog(true)
+                  }}
+                >
                   <TableCell>{student.firstName} {student.lastName}</TableCell>
                   <TableCell>{student.course}</TableCell>
                   <TableCell>{student.duration} months</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
                         {getStatusBadge(student.status)}
@@ -167,7 +194,7 @@ export default function StudentsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
                         <Button variant="ghost" size="icon">
@@ -177,8 +204,8 @@ export default function StudentsPage() {
                       <DropdownMenuContent>
                         <DropdownMenuItem
                           onClick={() => {
-                            setSelectedStudent(student)
-                            setIsViewModalOpen(true)
+                            setStudentToView(student)
+                            setShowConfirmDialog(true)
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" />
@@ -209,34 +236,55 @@ export default function StudentsPage() {
           </Table>
         </div>
 
-        {/* View Details Modal */}
-        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Student Details</DialogTitle>
-            </DialogHeader>
-            {selectedStudent && (
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium">Name</h4>
-                  <p>{selectedStudent.firstName} {selectedStudent.lastName}</p>
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent className="max-w-[400px] p-0 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-blue-50">
+                  <Info className="h-4 w-4 text-blue-500" />
                 </div>
-                <div>
-                  <h4 className="font-medium">Course</h4>
-                  <p>{selectedStudent.course}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium">Duration</h4>
-                  <p>{selectedStudent.duration} months</p>
-                </div>
-                <div>
-                  <h4 className="font-medium">Status</h4>
-                  <p>{getStatusBadge(selectedStudent.status)}</p>
-                </div>
+                <AlertDialogTitle className="text-base font-medium m-0">View Student Details</AlertDialogTitle>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
+              <AlertDialogCancel className="p-2 hover:bg-gray-100 rounded-full border-0">
+                <X className="h-4 w-4" />
+              </AlertDialogCancel>
+            </div>
+            
+            <div className="p-4">
+              <AlertDialogDescription className="text-sm text-gray-600 mb-6">
+                Do you want to view details for {studentToView?.firstName} {studentToView?.lastName}?
+              </AlertDialogDescription>
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowConfirmDialog(false)}
+                  className="px-4"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelectedStudent(studentToView)
+                    setIsViewModalOpen(true)
+                    setShowConfirmDialog(false)
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 px-4"
+                >
+                  View Details
+                </Button>
+              </div>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {selectedStudent && (
+          <StudentDetailsDialog
+            student={selectedStudent}
+            open={isViewModalOpen}
+            onOpenChange={setIsViewModalOpen}
+          />
+        )}
 
         {/* Edit Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -249,5 +297,137 @@ export default function StudentsPage() {
         </Dialog>
       </div>
     </DashboardLayout>
+  )
+}
+
+function StudentDetailsDialog({
+  student,
+  open,
+  onOpenChange,
+}: {
+  student: Student | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  if (!student) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[400px] p-0 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-full bg-blue-50">
+              <User className="h-4 w-4 text-blue-500" />
+            </div>
+            <DialogTitle className="text-base font-medium m-0">Student Details</DialogTitle>
+          </div>
+          <DialogClose className="p-2 hover:bg-gray-100 rounded-full">
+            <X className="h-4 w-4" />
+          </DialogClose>
+        </div>
+        
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <User className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Full Name</p>
+                <p className="text-sm font-medium">{student.firstName} {student.lastName}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <AtSign className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Username</p>
+                <p className="text-sm font-medium">{student.username}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <Mail className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Email</p>
+                <p className="text-sm font-medium">{student.email}</p>
+              </div>
+            </div>
+
+            {student.phone ? (
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <Phone className="h-4 w-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Phone</p>
+                  <p className="text-sm font-medium">{student.phone}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <GraduationCap className="h-4 w-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Course</p>
+                  <p className="text-sm font-medium">{student.course}</p>
+                </div>
+              </div>
+            )}
+
+            {student.address && (
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg col-span-2">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Address</p>
+                  <p className="text-sm font-medium">{student.address}</p>
+                </div>
+              </div>
+            )}
+
+            {!student.phone && (
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Duration</p>
+                  <p className="text-sm font-medium">{student.duration} months</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <Activity className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Status</p>
+                <p className="text-sm font-medium">{student.status}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <Star className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Points</p>
+                <p className="text-sm font-medium">{student.points} points</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="text-xs text-gray-500">Join Date</p>
+                <p className="text-sm font-medium">
+                  {new Date(student.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="px-4"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

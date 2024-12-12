@@ -10,8 +10,12 @@ export async function GET() {
         firstName: true,
         lastName: true,
         username: true,
+        email: true,
+        phone: true,
+        address: true,
         status: true,
         points: true,
+        createdAt: true,
         courses: {
           select: {
             name: true,
@@ -19,25 +23,25 @@ export async function GET() {
           }
         }
       },
-      where: {
-        status: "ACTIVE"
-      },
       orderBy: {
-        username: 'asc'
+        createdAt: 'desc'
       }
     })
 
-    // Transform the data to include course name and duration
+    // Transform the data to match the frontend structure
     const transformedStudents = students.map(student => ({
       id: student.id,
       firstName: student.firstName,
       lastName: student.lastName,
       username: student.username,
-      status: student.status,
-      points: student.points,
+      email: student.email,
+      phone: student.phone,
+      address: student.address,
       course: student.courses[0]?.name || 'No Course',
       duration: student.courses[0]?.duration || 0,
-      monthsLeft: calculateMonthsLeft(student.createdAt, student.courses[0]?.duration || 0)
+      status: student.status,
+      points: student.points,
+      createdAt: student.createdAt.toISOString()
     }))
 
     return NextResponse.json(transformedStudents)
