@@ -24,6 +24,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@types/socket.io": "^3.0.1",
     "@types/uuid": "^10.0.0",
     "@uploadthing/react": "^7.1.2",
     "bcryptjs": "^2.4.3",

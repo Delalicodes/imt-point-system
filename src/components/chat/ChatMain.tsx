@@ -192,7 +192,8 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       senderId: userId,
       senderName: username,
       isAdmin,
-      isReport: false,
+      timestamp: new Date(),
+      profileImage: `/api/avatar/${userId}`,
       ...(replyingTo && {
         replyTo: {
           id: replyingTo.id!,
@@ -202,7 +203,10 @@ export default function ChatMain({ userId, username, isAdmin }: ChatMainProps) {
       })
     }
 
+    console.log('Sending message:', messageData)
     socket.emit('message', messageData)
+    
+    // Don't update messages array here, wait for server broadcast
     setNewMessage('')
     setReplyingTo(null)
   }
