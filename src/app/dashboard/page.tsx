@@ -15,6 +15,14 @@ import {
 } from "lucide-react"
 import { Line, Pie } from "recharts"
 
+interface UserData {
+  id: string
+  username: string
+  firstName: string
+  lastName: string
+  type: string
+}
+
 // Mock data for charts
 const chartData = [
   { name: "JAN-MAR", value: 35 },
@@ -36,7 +44,7 @@ const rankingsData = [
     chains: ["ETH", "BSC", "TRON"],
     change: "+3.12%",
     tvl: "$6.67B",
-    icon: "🟣"
+    icon: ""
   },
   {
     name: "Convex",
@@ -44,7 +52,7 @@ const rankingsData = [
     chains: ["ETH", "BSC"],
     change: "-0.07%",
     tvl: "$2.27B",
-    icon: "🔵"
+    icon: ""
   },
   {
     name: "Instadapp",
@@ -52,42 +60,45 @@ const rankingsData = [
     chains: ["ETH", "LINK"],
     change: "+0.62%",
     tvl: "$1.67B",
-    icon: "⚫"
+    icon: ""
   }
 ]
 
 export default function DashboardPage() {
   const router = useRouter()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [userData, setUserData] = useState<{ username: string; imageUrl: string } | null>(null)
+  const [userData, setUserData] = useState<UserData | null>(null)
 
   useEffect(() => {
-    // Fetch user data when component mounts
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("/api/admin/profile")
-        if (response.ok) {
-          const data = await response.json()
-          setUserData(data)
-        }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error)
-      }
+    // Get user data from localStorage
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      setUserData(JSON.parse(storedUser))
+    } else {
+      router.push('/login')
     }
+  }, [router])
 
-    fetchUserData()
-  }, [])
+  if (!userData) {
+    return <div>Loading...</div>
+  }
 
   return (
     <DashboardLayout>
       {/* Header */}
-   
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold">Welcome back, {userData?.username}</h2>
-          <p className="text-gray-600">Take a look at the updated DeFi overview</p>
+          <h2 className="text-2xl font-bold">
+            {userData.type === 'admin' 
+              ? `Welcome, Administrator ${userData.firstName} ${userData.lastName}`
+              : `Welcome, ${userData.firstName} ${userData.lastName}`}
+          </h2>
+          <p className="text-gray-600">
+            {userData.type === 'admin' 
+              ? 'View system overview and manage users'
+              : 'View your points and progress'}
+          </p>
         </div>
 
         <div className="grid grid-cols-12 gap-6">

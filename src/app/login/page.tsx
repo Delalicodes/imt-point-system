@@ -7,21 +7,22 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { useUser } from "@/contexts/UserContext"
 
 export default function LoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [message, setMessage] = useState({ type: "", content: "" })
   const [isLoading, setIsLoading] = useState(false)
+  const { updateUserData } = useUser()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setMessage({ type: "", content: "" })
     
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch('/api/auth/login', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,14 +34,27 @@ export default function LoginPage() {
       console.log('Login response:', data)
 
       if (response.ok) {
-        setMessage({ type: "success", content: "Login successful!" })
+        // Store user data in localStorage and context
+        const { user } = data
+        const userData = {
+          id: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          type: user.type
+        }
+        
+        localStorage.setItem('user', JSON.stringify(userData))
+        updateUserData(userData)
+        
+        toast.success(`Welcome back, ${userData.firstName}!`)
         router.push("/dashboard")
       } else {
-        setMessage({ type: "error", content: data.error || "Login failed" })
+        toast.error(data.error || "Invalid username or password")
       }
     } catch (error) {
       console.error('Login error:', error)
-      setMessage({ type: "error", content: "An error occurred. Please try again." })
+      toast.error("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -54,66 +68,49 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 lg:px-8 bg-white">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <div className="flex flex-col items-center">
-            <div className="relative w-32 h-32 mb-4">
-              <Image
-                src="/images/it-education-logo.svg"
-                alt="IT Education Logo"
-                fill
-                priority
-                className="object-contain"
-              />
-            </div>
-            <h2 className="mt-4 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-              Admin Login
-            </h2>
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 bg-white">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo and Title */}
+          <div className="flex flex-col items-center space-y-2">
+            <Image
+              src="/images/it-education-logo.svg"
+              alt="Logo"
+              width={64}
+              height={64}
+              priority
+            />
+            <h2 className="text-2xl font-bold">Welcome back</h2>
+            <p className="text-gray-600">Please enter your credentials to login</p>
           </div>
-        </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          {message.content && (
-            <div className={`p-4 mb-4 rounded-md ${
-              message.type === 'error' 
-                ? 'bg-red-50 text-red-700 border border-red-200'
-                : 'bg-green-50 text-green-700 border border-green-200'
-            }`}>
-              {message.content}
-            </div>
-          )}
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="username">Username</Label>
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username or Email</Label>
               <Input
                 id="username"
-                name="username"
                 type="text"
-                autoComplete="username"
-                required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-2"
+                required
               />
             </div>
-
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
-                autoComplete="current-password"
-                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-2"
+                required
               />
             </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Log in"}
             </Button>
           </form>
         </div>

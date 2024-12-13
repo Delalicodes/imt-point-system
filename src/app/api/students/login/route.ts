@@ -21,13 +21,21 @@ export async function POST(request: Request) {
         ]
       },
       include: {
-        course: true
+        courses: true
       }
     })
 
     console.log('Student found:', student ? 'yes' : 'no')
+    if (student) {
+      console.log('Student details:', {
+        ...student,
+        password: '[REDACTED]',
+        courses: student.courses
+      })
+    }
 
     if (!student) {
+      console.log('No student found with username/email:', username)
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -37,8 +45,11 @@ export async function POST(request: Request) {
     console.log('Validating password')
     const isPasswordValid = await bcrypt.compare(password, student.password)
     console.log('Password valid:', isPasswordValid ? 'yes' : 'no')
+    console.log('Provided password:', password)
+    console.log('Stored hashed password:', student.password)
 
     if (!isPasswordValid) {
+      console.log('Password validation failed')
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -58,6 +69,9 @@ export async function POST(request: Request) {
       sameSite: 'lax'
     })
 
+    // Get the first course name if available
+    const courseName = student.courses[0]?.name || 'Not Assigned'
+
     // Store student data in session cookie for easy access
     cookies().set('user_data', JSON.stringify({
       id: student.id,
@@ -65,7 +79,7 @@ export async function POST(request: Request) {
       firstName: student.firstName,
       lastName: student.lastName,
       type: 'student',
-      course: student.course.name
+      course: courseName
     }), {
       expires,
       httpOnly: true,
@@ -81,7 +95,7 @@ export async function POST(request: Request) {
         firstName: student.firstName,
         lastName: student.lastName,
         type: 'student',
-        course: student.course.name
+        course: courseName
       }
     })
   } catch (error) {

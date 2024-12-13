@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generatePassword } from "@/lib/utils";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";  
 import { sendEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
@@ -17,8 +16,9 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     console.log('Received registration data:', body);
+    console.log('Course data type:', typeof body.course);
 
-    const { firstName, lastName, username, email, phone } = body;
+    const { firstName, lastName, username, email, phone, course } = body;
 
     // Validate required fields
     const requiredFields = { firstName, lastName, username, email, phone };
@@ -52,26 +52,72 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate a random password
-    const password = generatePassword();
-    const hashedPassword = await hash(password, 10);
+    // Generate a default password using first name and last name
+    const defaultPassword = `${firstName.toLowerCase()}${lastName.toLowerCase()}123!`
+    console.log('Generated password:', defaultPassword);
+    const hashedPassword = await hash(defaultPassword, 10);
+    console.log('Hashed password generated');
 
-    // Create the student
+    // Verify course exists if provided
+    let courseData = null;
+    if (course) {
+      try {
+        const courseId = typeof course === 'string' ? parseInt(course) : course;
+        console.log('Looking for course with ID:', courseId);
+        
+        courseData = await prisma.course.findUnique({
+          where: { id: courseId }
+        });
+        
+        if (!courseData) {
+          console.error('Course not found:', courseId);
+          return NextResponse.json(
+            { error: `Course with ID ${courseId} not found` },
+            { status: 400 }
+          );
+        }
+        console.log('Found course:', courseData);
+      } catch (error) {
+        console.error('Error parsing course ID:', error);
+        return NextResponse.json(
+          { error: 'Invalid course ID format' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Create the student with course connection if provided
+    const studentData = {
+      firstName,
+      lastName,
+      username,
+      email,
+      phone,
+      password: hashedPassword,
+      ...(courseData && {
+        courses: {
+          connect: [{ id: courseData.id }]
+        }
+      })
+    };
+    
+    console.log('Creating student with data:', {
+      ...studentData,
+      password: '[REDACTED]'
+    });
+
     const student = await prisma.student.create({
-      data: {
-        firstName,
-        lastName,
-        username,
-        email,
-        phone,
-        password: hashedPassword,
+      data: studentData,
+      include: {
+        courses: true
       }
     });
 
     console.log('Student created successfully:', {
       id: student.id,
       username: student.username,
-      email: student.email
+      email: student.email,
+      courses: student.courses
     });
 
     // Try to send email if configuration exists
@@ -83,7 +129,7 @@ export async function POST(req: Request) {
         <p>Hello ${firstName},</p>
         <p>Your account has been created successfully. Here are your login credentials:</p>
         <p><strong>Username:</strong> ${username}</p>
-        <p><strong>Password:</strong> ${password}</p>
+        <p><strong>Password:</strong> ${defaultPassword}</p>
         <p>Please change your password after your first login.</p>
         <p>Best regards,<br>IMT Point System Team</p>
       `,
@@ -92,40 +138,22 @@ export async function POST(req: Request) {
       return null;
     });
 
-    // Return the credentials if email wasn't sent
-    return NextResponse.json({ 
-      message: "Student registered successfully",
-      student: {
+    return NextResponse.json({
+      success: true,
+      user: {
         id: student.id,
         username: student.username,
         email: student.email,
-        ...(emailSent ? {} : { password }) // Include password in response if email wasn't sent
-      }
+        firstName: student.firstName,
+        lastName: student.lastName,
+        course: student.courses[0]?.name || 'Not Assigned'
+      },
+      ...(emailSent ? {} : { credentials: { username, password: defaultPassword } })
     });
-
   } catch (error) {
-    console.error('Registration error:', error);
-    
-    // More specific error messages based on error type
-    if (error instanceof Error) {
-      if (error.message.includes('prisma')) {
-        console.error('Database error:', error);
-        return NextResponse.json(
-          { error: "Database error occurred. Please try again later." },
-          { status: 500 }
-        );
-      }
-      if (error.message.includes('JSON')) {
-        console.error('Invalid request data:', error);
-        return NextResponse.json(
-          { error: "Invalid request data provided." },
-          { status: 400 }
-        );
-      }
-    }
-
+    console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Failed to register student. Please try again later." },
+      { error: "Internal server error", details: error.message },
       { status: 500 }
     );
   }

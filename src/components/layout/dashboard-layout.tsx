@@ -18,7 +18,30 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const { userData } = useUser()
+  const { userData, updateUserData } = useUser()
+
+  useEffect(() => {
+    // Check if user data exists in localStorage
+    const storedUser = localStorage.getItem('user')
+    if (!storedUser) {
+      router.push('/login')
+      return
+    }
+
+    // Update context with stored user data
+    const parsedUser = JSON.parse(storedUser)
+    updateUserData(parsedUser)
+  }, [router, updateUserData])
+
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    updateUserData(null)
+    router.push('/login')
+  }
+
+  if (!userData) {
+    return null // Don't render anything while checking auth
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -56,7 +79,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     height={32}
                     className="rounded-full"
                   />
-                  <span className="text-sm font-medium">{userData?.username}</span>
+                  <span className="text-sm font-medium">
+                    {userData.firstName} {userData.lastName}
+                  </span>
                   <ChevronDown size={16} />
                 </button>
                 
@@ -75,7 +100,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       Profile
                     </button>
                     <button 
-                      onClick={() => router.push("/login")}
+                      onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Log out
