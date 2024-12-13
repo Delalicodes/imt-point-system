@@ -35,6 +35,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important for cookies
       })
       
       if (!response.ok) {
@@ -42,6 +43,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       
       localStorage.removeItem('user')
+      localStorage.removeItem('token')
       setUserData(null)
     } catch (error) {
       console.error('Logout error:', error)
@@ -51,19 +53,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const refreshUserData = async () => {
     try {
-      const response = await fetch("/api/auth/session")
+      const response = await fetch("/api/auth/session", {
+        credentials: 'include', // Important for cookies
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch session')
       }
       const data = await response.json()
-      if (data) {
+      if (data && data.user) {
         const userData = {
-          id: data.id,
-          username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          imageUrl: data.imageUrl || "/images/it-education-logo.svg",
-          role: data.role
+          id: data.user.id,
+          username: data.user.username,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          imageUrl: data.user.imageUrl || "/images/it-education-logo.svg",
+          role: data.user.role
         }
         setUserData(userData)
         localStorage.setItem('user', JSON.stringify(userData))
