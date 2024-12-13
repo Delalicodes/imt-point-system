@@ -12,13 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Card } from "@/components/ui/card"
 
 interface Course {
   id: number
   name: string
-  duration: number
+  description: string
 }
 
 export default function RegistrationPage() {
@@ -181,159 +180,164 @@ export default function RegistrationPage() {
     }))
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-800 dark:text-gray-300">Loading registration form...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <DashboardLayout>
+    <div className="flex-1 space-y-4 p-8 pt-6">
       <Notification
         type={notification.type}
         message={notification.message}
         onClose={() => setNotification({ type: null, message: '' })}
       />
 
-      <div className="flex-1 space-y-4 p-8 pt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight">Student Registration</h2>
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Student Registration</h2>
+      </div>
 
-        <div className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto">
+        <div className="p-6">
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex justify-between mb-2">
               <div className="flex-1">
-                <div className={`h-2 ${step === 1 ? 'bg-blue-500' : 'bg-gray-200'} rounded-l-full`}></div>
-                <p className={`text-sm mt-1 ${step === 1 ? 'text-blue-500' : 'text-gray-500'}`}>Personal Information</p>
+                <div className={`h-2 ${step === 1 ? 'bg-primary' : 'bg-gray-200'} rounded-l`}></div>
               </div>
               <div className="flex-1">
-                <div className={`h-2 ${step === 2 ? 'bg-blue-500' : 'bg-gray-200'} rounded-r-full`}></div>
-                <p className={`text-sm mt-1 ${step === 2 ? 'text-blue-500' : 'text-gray-500'}`}>Contact Information</p>
+                <div className={`h-2 ${step === 2 ? 'bg-primary' : 'bg-gray-200'} rounded-r`}></div>
               </div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className={step === 1 ? 'text-primary' : 'text-gray-500'}>Personal Info</span>
+              <span className={step === 2 ? 'text-primary' : 'text-gray-500'}>Contact Details</span>
             </div>
           </div>
 
-          <Card className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {step === 1 ? (
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {step === 1 ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
                       name="firstName"
-                      placeholder="Enter first name"
                       value={formData.firstName}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}
                     />
                   </div>
-
-                  <div className="grid gap-2">
+                  <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
                       name="lastName"
-                      placeholder="Enter last name"
                       value={formData.lastName}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      name="username"
-                      placeholder="Enter username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="course">Course</Label>
-                    <Select
-                      value={formData.course}
-                      onValueChange={handleCourseChange}
-                      disabled={isSubmitting || isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={isLoading ? "Loading courses..." : "Select a course"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableCourses.map((course) => (
-                          <SelectItem key={course.id} value={course.id.toString()}>
-                            {course.name} ({course.duration} months)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Enter email address"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone Number (Optional)</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      placeholder="Enter phone number"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="address">Address (Optional)</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      placeholder="Enter address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
-              )}
 
-              <div className="flex gap-4 justify-end">
-                {step === 2 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                    disabled={isSubmitting}
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="course">Course</Label>
+                  <Select
+                    value={formData.course}
+                    onValueChange={handleCourseChange}
                   >
-                    Back
-                  </Button>
-                )}
-                <Button type="submit" disabled={isSubmitting || isLoading}>
-                  {isSubmitting ? 'Registering...' : step === 1 ? 'Next' : 'Register Student'}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCourses.map((course) => (
+                        <SelectItem
+                          key={course.id}
+                          value={course.id.toString()}
+                        >
+                          {course.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-between pt-4">
+              {step === 2 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                >
+                  Previous
                 </Button>
-              </div>
-            </form>
-          </Card>
+              )}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={step === 1 ? 'ml-auto' : ''}
+              >
+                {step === 1 ? 'Next' : 'Submit'}
+              </Button>
+            </div>
+          </form>
         </div>
-      </div>
-    </DashboardLayout>
+      </Card>
+    </div>
   )
 }

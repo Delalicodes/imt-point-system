@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import ChatSidebar from '@/components/chat/ChatSidebar'
 import ChatMain from '@/components/chat/ChatMain'
 import UserProfile from '@/components/chat/UserProfile'
-import DashboardLayout from '@/components/layout/dashboard-layout'
 import { useUser } from '@/contexts/UserContext'
 
 interface Student {
@@ -27,67 +26,61 @@ export default function ChatPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-300">Loading chat...</p>
-          </div>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-300">Loading chat...</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   if (!userData) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
-          <div className="text-center">
-            <p className="text-red-400">Error: Unable to load user session</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-2 text-purple-400 hover:text-purple-300 hover:underline"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#1E1E2D]">
+        <div className="text-center">
+          <p className="text-red-400">Error: Unable to load user session</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-2 text-purple-400 hover:text-purple-300 hover:underline"
+          >
+            Try Again
+          </button>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="flex h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
-        {/* Left Sidebar */}
-        <ChatSidebar 
-          selectedChat={selectedChat}
-          onChatSelect={handleChatSelect}
+    <div className="flex h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
+      {/* Left Sidebar */}
+      <ChatSidebar 
+        selectedChat={selectedChat}
+        onChatSelect={handleChatSelect}
+        username={userData.username}
+      />
+
+      {/* Main Chat Area */}
+      <div className="flex-1">
+        <ChatMain
+          chatId={selectedChat}
+          onProfileClick={() => setShowProfile(true)}
+          userId={userData.id}
           username={userData.username}
         />
-
-        {/* Main Chat Area */}
-        <div className="flex-1">
-          <ChatMain
-            chatId={selectedChat}
-            onProfileClick={() => setShowProfile(true)}
-            userId={userData.id}
-            username={userData.username}
-          />
-        </div>
-
-        {/* Right Profile Sidebar */}
-        {showProfile && (
-          <UserProfile
-            onClose={() => setShowProfile(false)}
-            user={{
-              username: userData.username,
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || ''
-            }}
-          />
-        )}
       </div>
-    </DashboardLayout>
+
+      {/* Right Profile Sidebar */}
+      {showProfile && (
+        <UserProfile
+          onClose={() => setShowProfile(false)}
+          user={{
+            username: userData.username,
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || ''
+          }}
+        />
+      )}
+    </div>
   )
 }

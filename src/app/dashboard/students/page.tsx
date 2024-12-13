@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Pencil, Trash2, Eye, MoreHorizontal, Info, X } from 'lucide-react'
-import DashboardLayout from '@/components/layout/dashboard-layout'
 import {
   Table,
   TableBody,
@@ -137,166 +136,162 @@ export default function StudentsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          Loading...
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        Loading...
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-10">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Students</h1>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((student) => (
-                <TableRow 
-                  key={student.id}
-                  className="cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-100"
-                  onClick={() => {
-                    setStudentToView(student)
-                    setShowConfirmDialog(true)
-                  }}
-                >
-                  <TableCell>{student.firstName} {student.lastName}</TableCell>
-                  <TableCell>{student.course}</TableCell>
-                  <TableCell>{student.duration} months</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        {getStatusBadge(student.status)}
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'ACTIVE')}>
-                          Active
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'ON_HOLD')}>
-                          On Hold
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'COMPLETED')}>
-                          Completed
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setStudentToView(student)
-                            setShowConfirmDialog(true)
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedStudent(student)
-                            setIsEditModalOpen(true)
-                          }}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(student.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <AlertDialogContent className="max-w-[400px] p-0 overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-full bg-blue-50">
-                  <Info className="h-4 w-4 text-blue-500" />
-                </div>
-                <AlertDialogTitle className="text-base font-medium m-0">View Student Details</AlertDialogTitle>
-              </div>
-              <AlertDialogCancel className="p-2 hover:bg-gray-100 rounded-full border-0">
-                <X className="h-4 w-4" />
-              </AlertDialogCancel>
-            </div>
-            
-            <div className="p-4">
-              <AlertDialogDescription className="text-sm text-gray-600 mb-6">
-                Do you want to view details for {studentToView?.firstName} {studentToView?.lastName}?
-              </AlertDialogDescription>
-              
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirmDialog(false)}
-                  className="px-4"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    setSelectedStudent(studentToView)
-                    setIsViewModalOpen(true)
-                    setShowConfirmDialog(false)
-                  }}
-                  className="bg-blue-500 hover:bg-blue-600 px-4"
-                >
-                  View Details
-                </Button>
-              </div>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {selectedStudent && (
-          <StudentDetailsDialog
-            student={selectedStudent}
-            open={isViewModalOpen}
-            onOpenChange={setIsViewModalOpen}
-          />
-        )}
-
-        {/* Edit Modal */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Student</DialogTitle>
-            </DialogHeader>
-            {/* Add edit form here */}
-          </DialogContent>
-        </Dialog>
+    <div className="container mx-auto py-10">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Students</h1>
       </div>
-    </DashboardLayout>
+
+      <div className="bg-white rounded-lg shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Course</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((student) => (
+              <TableRow 
+                key={student.id}
+                className="cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => {
+                  setStudentToView(student)
+                  setShowConfirmDialog(true)
+                }}
+              >
+                <TableCell>{student.firstName} {student.lastName}</TableCell>
+                <TableCell>{student.course}</TableCell>
+                <TableCell>{student.duration} months</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      {getStatusBadge(student.status)}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'ACTIVE')}>
+                        Active
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'ON_HOLD')}>
+                        On Hold
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStatusChange(student.id, 'COMPLETED')}>
+                        Completed
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStudentToView(student)
+                          setShowConfirmDialog(true)
+                        }}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedStudent(student)
+                          setIsEditModalOpen(true)
+                        }}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(student.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-[400px] p-0 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-blue-50">
+                <Info className="h-4 w-4 text-blue-500" />
+              </div>
+              <AlertDialogTitle className="text-base font-medium m-0">View Student Details</AlertDialogTitle>
+            </div>
+            <AlertDialogCancel className="p-2 hover:bg-gray-100 rounded-full border-0">
+              <X className="h-4 w-4" />
+            </AlertDialogCancel>
+          </div>
+            
+          <div className="p-4">
+            <AlertDialogDescription className="text-sm text-gray-600 mb-6">
+              Do you want to view details for {studentToView?.firstName} {studentToView?.lastName}?
+            </AlertDialogDescription>
+              
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setSelectedStudent(studentToView)
+                  setIsViewModalOpen(true)
+                  setShowConfirmDialog(false)
+                }}
+                className="bg-blue-500 hover:bg-blue-600 px-4"
+              >
+                View Details
+              </Button>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {selectedStudent && (
+        <StudentDetailsDialog
+          student={selectedStudent}
+          open={isViewModalOpen}
+          onOpenChange={setIsViewModalOpen}
+        />
+      )}
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Student</DialogTitle>
+          </DialogHeader>
+          {/* Add edit form here */}
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }
 

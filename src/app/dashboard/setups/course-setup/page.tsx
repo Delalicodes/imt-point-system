@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Pencil, Trash2, Plus } from 'lucide-react'
 
 interface Subject {
@@ -214,7 +213,7 @@ export default function CourseSetupPage() {
   }
 
   return (
-    <DashboardLayout>
+    <div className="container mx-auto py-6">
       {notification.type && (
         <div
           className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
@@ -396,6 +395,6 @@ export default function CourseSetupPage() {
           </table>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }

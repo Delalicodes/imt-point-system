@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import DashboardLayout from '@/components/layout/dashboard-layout'
 
 interface Subject {
   name: string
@@ -95,7 +94,7 @@ export default function CourseManagementPage() {
   }
 
   return (
-    <DashboardLayout>
+    <div className="space-y-6">
       {notification.type && (
         <div
           className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
@@ -108,103 +107,101 @@ export default function CourseManagementPage() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-8">Course Management</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Course Management</h1>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Course Name</Label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Course Name</Label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter course name"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Course Description</Label>
+          <Textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Enter course description"
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="durationMonths">Duration (months)</Label>
+          <Input
+            id="durationMonths"
+            name="durationMonths"
+            type="number"
+            min="1"
+            value={formData.durationMonths}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="space-y-4">
+          <Label>Subjects</Label>
+          <div className="flex gap-4">
+            <div className="flex-1">
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter course name"
-                required
+                placeholder="Subject name"
+                value={subjectInput.name}
+                onChange={(e) => setSubjectInput(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
-
-            <div>
-              <Label htmlFor="description">Course Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Enter course description"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="durationMonths">Duration (months)</Label>
+            <div className="flex-1">
               <Input
-                id="durationMonths"
-                name="durationMonths"
-                type="number"
-                min="1"
-                value={formData.durationMonths}
-                onChange={handleChange}
-                required
+                placeholder="Subject description (optional)"
+                value={subjectInput.description}
+                onChange={(e) => setSubjectInput(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
-
-            <div className="space-y-4">
-              <Label>Subjects</Label>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Subject name"
-                    value={subjectInput.name}
-                    onChange={(e) => setSubjectInput(prev => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-                <div className="flex-1">
-                  <Input
-                    placeholder="Subject description (optional)"
-                    value={subjectInput.description}
-                    onChange={(e) => setSubjectInput(prev => ({ ...prev, description: e.target.value }))}
-                  />
-                </div>
-                <Button type="button" onClick={handleAddSubject}>
-                  Add Subject
-                </Button>
-              </div>
-
-              {formData.subjects.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {formData.subjects.map((subject, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{subject.name}</p>
-                        {subject.description && (
-                          <p className="text-sm text-gray-500">{subject.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveSubject(index)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Button type="button" onClick={handleAddSubject}>
+              Add Subject
+            </Button>
           </div>
 
-          <Button type="submit" className="w-full">
-            Create Course
-          </Button>
-        </form>
-      </div>
-    </DashboardLayout>
+          {formData.subjects.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {formData.subjects.map((subject, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{subject.name}</p>
+                    {subject.description && (
+                      <p className="text-sm text-gray-500">{subject.description}</p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleRemoveSubject(index)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Button type="submit" className="w-full">
+          Create Course
+        </Button>
+      </form>
+    </div>
   )
 }

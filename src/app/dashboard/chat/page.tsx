@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import ChatMain from '@/components/chat/ChatMain'
-import DashboardLayout from '@/components/layout/dashboard-layout'
 import { useUser } from '@/contexts/UserContext'
 
 export default function ChatPage() {
@@ -15,32 +14,28 @@ export default function ChatPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-[#00a884] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-800 dark:text-gray-300">Loading chat...</p>
-          </div>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#00a884] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-800 dark:text-gray-300">Loading chat...</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   if (!userData) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
-          <div className="text-center">
-            <p className="text-red-400">Error: Unable to load user session</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-2 text-[#00a884] hover:text-[#008f6c]"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#efeae2] dark:bg-[#0c1317]">
+        <div className="text-center">
+          <p className="text-red-400">Error: Unable to load user session</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-2 text-[#00a884] hover:text-[#008f6c]"
+          >
+            Try Again
+          </button>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
@@ -49,14 +44,12 @@ export default function ChatPage() {
     : userData.username || 'Anonymous'
 
   return (
-    <DashboardLayout>
-      <div className="h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
-        <ChatMain
-          userId={userData.id}
-          username={displayName}
-          isAdmin={userData.role === 'ADMIN'}
-        />
-      </div>
-    </DashboardLayout>
+    <div className="h-[calc(100vh-4rem)] bg-[#1E1E2D] overflow-hidden">
+      <ChatMain
+        userId={userData.id}
+        username={displayName}
+        isAdmin={userData.role === 'ADMIN'}
+      />
+    </div>
   )
 }
