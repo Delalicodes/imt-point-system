@@ -16,13 +16,26 @@ export async function GET() {
     }
 
     const user = JSON.parse(userData.value)
+    console.log('User data:', user) // Debug log
 
-    // Get user's points and recent transactions
+    // Only proceed if user is a student
+    if (user.type !== 'student') {
+      return NextResponse.json({
+        points: 0,
+        rank: '-',
+        totalStudents: 0,
+        recentActivities: 0,
+        recentTransactions: []
+      })
+    }
+
+    // Find student by username
     const student = await prisma.student.findUnique({
-      where: { id: user.id },
+      where: { username: user.username },
       select: {
+        id: true,
         points: true,
-        pointTransactions: {
+        receivedPoints: {
           take: 5,
           orderBy: {
             createdAt: 'desc'
@@ -36,6 +49,8 @@ export async function GET() {
         }
       }
     })
+
+    console.log('Student data:', student) // Debug log
 
     if (!student) {
       return NextResponse.json(
@@ -59,7 +74,7 @@ export async function GET() {
     // Get recent activities count (last 30 days)
     const recentActivities = await prisma.pointTransaction.count({
       where: {
-        studentId: user.id,
+        studentId: student.id, 
         createdAt: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
         }
@@ -67,16 +82,16 @@ export async function GET() {
     })
 
     return NextResponse.json({
-      points: student.points,
+      points: student.points || 0,
       rank,
       totalStudents,
       recentActivities,
-      recentTransactions: student.pointTransactions
+      recentTransactions: student.receivedPoints || []
     })
   } catch (error) {
     console.error('Error fetching user points:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch points' },
+      { error: 'Failed to fetch points', details: error.message },
       { status: 500 }
     )
   }
