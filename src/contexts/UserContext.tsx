@@ -9,6 +9,7 @@ interface UserData {
   lastName: string
   imageUrl?: string
   role?: string
+  type?: string
 }
 
 interface UserContextType {
@@ -35,7 +36,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for cookies
+        credentials: 'include',
       })
       
       if (!response.ok) {
@@ -54,23 +55,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const refreshUserData = async () => {
     try {
       const response = await fetch("/api/auth/session", {
-        credentials: 'include', // Important for cookies
+        credentials: 'include',
       })
       if (!response.ok) {
         throw new Error('Failed to fetch session')
       }
       const data = await response.json()
-      if (data && data.user) {
-        const userData = {
-          id: data.user.id,
-          username: data.user.username,
-          firstName: data.user.firstName,
-          lastName: data.user.lastName,
-          imageUrl: data.user.imageUrl || "/images/it-education-logo.svg",
-          role: data.user.role
-        }
-        setUserData(userData)
-        localStorage.setItem('user', JSON.stringify(userData))
+      if (data) {
+        setUserData(data)
+        localStorage.setItem('user', JSON.stringify(data))
       } else {
         setUserData(null)
         localStorage.removeItem('user')
@@ -79,20 +72,50 @@ export function UserProvider({ children }: { children: ReactNode }) {
       console.error("Failed to fetch user data:", error)
       setUserData(null)
       localStorage.removeItem('user')
+      window.location.href = '/login'
     }
   }
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
+    const initializeUserData = async () => {
       try {
-        setUserData(JSON.parse(storedUser))
-      } catch (e) {
-        console.error('Error parsing stored user data:', e)
-        localStorage.removeItem('user')
+        // First try to get data from session
+        const response = await fetch("/api/auth/session", {
+          credentials: 'include',
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          if (data) {
+            setUserData(data)
+            return
+          }
+        }
+
+        // If no session data, try localStorage
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser)
+            // Validate the stored user data
+            if (parsedUser && parsedUser.id && parsedUser.username) {
+              setUserData(parsedUser)
+              return
+            }
+          } catch (e) {
+            console.error('Error parsing stored user data:', e)
+          }
+        }
+
+        // If no valid data found, redirect to login
+        window.location.href = '/login'
+      } catch (error) {
+        console.error('Error initializing user data:', error)
+        window.location.href = '/login'
       }
     }
-    refreshUserData()
+
+    initializeUserData()
   }, [])
 
   return (

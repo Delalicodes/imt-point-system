@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useUser } from '@/contexts/UserContext'
 import { useToast } from "@/components/ui/use-toast"
+import { cn } from "@/lib/utils"
+import Link from 'next/link'
 
 export default function DashboardHeader() {
   const router = useRouter()
@@ -43,67 +45,93 @@ export default function DashboardHeader() {
   }
 
   return (
-    <header className="border-b">
-      <div className="flex h-16 items-center px-4 gap-4">
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold">IMT Point System</h2>
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="relative inline-flex items-center justify-center p-2 rounded-full hover:bg-gray-100">
-              <Bell className="h-5 w-5" />
-              {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-600" />
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {notifications.length === 0 ? (
-              <div className="p-2 text-sm text-gray-500 text-center">
-                No new notifications
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center">
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1">
+            <Link 
+              href="/dashboard" 
+              className="flex items-center space-x-2 md:container md:h-14 md:max-w-screen-2xl"
+            >
+              <div className="hidden font-bold sm:inline-block">
+                IMT Point System
               </div>
-            ) : (
-              notifications.map((notification, index) => (
-                <DropdownMenuItem key={index}>
-                  {notification}
+              <span className="inline-block sm:hidden font-bold">IPS</span>
+            </Link>
+          </div>
+
+          <nav className="flex items-center space-x-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border bg-background hover:bg-accent hover:text-accent-foreground">
+                  <Bell className="h-4 w-4" />
+                  {notifications.length > 0 && (
+                    <span className="absolute right-0 top-0 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                    </span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[300px]">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    No new notifications
+                  </div>
+                ) : (
+                  notifications.map((notification, index) => (
+                    <DropdownMenuItem key={index}>
+                      {notification}
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full border bg-background p-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted">
+                    <span className="font-medium">
+                      {userData?.username?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <span className="hidden md:inline-block">
+                    {userData?.username || 'User'}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleProfileClick}
+                  className="cursor-pointer focus:bg-accent"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
                 </DropdownMenuItem>
-              ))
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">
-                  {userData?.username?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-              <span className="text-sm font-medium">{userData?.username || 'User'}</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSettingsClick} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <DropdownMenuItem 
+                  onClick={handleSettingsClick}
+                  className="cursor-pointer focus:bg-accent"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="cursor-pointer focus:bg-destructive focus:text-destructive-foreground text-destructive"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
       </div>
     </header>
   )
